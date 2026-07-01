@@ -1,62 +1,77 @@
-import React from 'react';
+// src/components/Products.jsx
+import React, { useEffect, useState } from 'react';
+import { subscribeToProducts } from '../productService';
 
 export default function Products() {
+  const [products, setProducts] = useState([]);
+  const [activeCategory, setActiveCategory] = useState('전체');
+
+  useEffect(() => {
+    const unsub = subscribeToProducts(setProducts);
+    return () => unsub();
+  }, []);
+
+  // 카테고리 목록 자동 추출
+  const categories = ['전체', ...new Set(products.map((p) => p.category).filter(Boolean))];
+
+  const filtered = activeCategory === '전체'
+    ? products
+    : products.filter((p) => p.category === activeCategory);
+
   return (
     <section className="products" id="products">
       <div className="products-header">
         <div className="section-label" style={{ justifyContent: 'center' }}>Our Works</div>
         <h2 className="section-title">윈니트의 작품들</h2>
       </div>
-      <div className="products-grid">
-        <div className="product-card">
-          <div className="product-img"></div>
-          <div className="product-info">
-            <div className="product-tag">Dog · 강아지 전문</div>
-            <div className="product-name">강아지 미니어처</div>
-            <div className="product-desc">사랑하는 반려견을 양모펠트로 입체적으로 재현한 미니어처 작품.</div>
-          </div>
-        </div>
-        <div className="product-card">
-          <div className="product-img"></div>
-          <div className="product-info">
-            <div className="product-tag">Dog · 강아지 전문</div>
-            <div className="product-name">강아지 액자</div>
-            <div className="product-desc">반려견의 개성 넘치는 표정을 액자 작품으로 생생하게 담아냅니다.</div>
-          </div>
-        </div>
-        <div className="product-card">
-          <div className="product-img"></div>
-          <div className="product-info">
-            <div className="product-tag">Small Gift · 소품</div>
-            <div className="product-name">강아지 키링</div>
-            <div className="product-desc">반려견을 쏙 닮은 앙증맞은 양모펠트 키링. 선물용으로도 완벽합니다.</div>
-          </div>
-        </div>
-        <div className="product-card">
-          <div className="product-img"></div>
-          <div className="product-info">
-            <div className="product-tag">Large · 특대형</div>
-            <div className="product-name">15cm 강아지</div>
-            <div className="product-desc">손바닥 위에 올려놓는 15cm 특대형 강아지 미니어처. 존재감 넘치는 작품.</div>
-          </div>
-        </div>
-        <div className="product-card">
-          <div className="product-img"></div>
-          <div className="product-info">
-            <div className="product-tag">Custom · 맞춤 제작</div>
-            <div className="product-name">캐릭터 맞춤커스텀</div>
-            <div className="product-desc">아이가 좋아하는 캐릭터를 키링·인형 등으로 세상 단 하나뿐인 작품으로 제작.</div>
-          </div>
-        </div>
-        <div className="product-card">
-          <div className="product-img"></div>
-          <div className="product-info">
-            <div className="product-tag">Gift · 선물</div>
-            <div className="product-name">맞춤 선물 세트</div>
-            <div className="product-desc">생일, 기념일, 특별한 날을 위한 세상 단 하나의 선물.</div>
-          </div>
-        </div>
+
+      {/* 카테고리 탭 */}
+      <div style={{ display: 'flex', justifyContent: 'center', gap: 10, marginBottom: 32, flexWrap: 'wrap' }}>
+        {categories.map((cat) => (
+          <button
+            key={cat}
+            onClick={() => setActiveCategory(cat)}
+            style={{
+              padding: '8px 20px',
+              borderRadius: 999,
+              border: '1px solid #ccc',
+              background: activeCategory === cat ? '#333' : 'transparent',
+              color: activeCategory === cat ? '#fff' : '#333',
+              cursor: 'pointer',
+              fontFamily: 'inherit',
+              fontSize: 14,
+            }}
+          >
+            {cat}
+          </button>
+        ))}
       </div>
+
+      <div className="products-grid">
+        {filtered.map((p) => (
+          <div className="product-card" key={p.id}>
+            <div
+              className="product-img"
+              style={{
+                backgroundImage: `url(${p.imageBase64})`,
+                backgroundSize: 'cover',
+                backgroundPosition: 'center',
+              }}
+            />
+            <div className="product-info">
+              <div className="product-tag">{p.category}</div>
+              <div className="product-name">{p.name}</div>
+              <div className="product-desc">{p.desc}</div>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {products.length === 0 && (
+        <p style={{ textAlign: 'center', color: '#999', marginTop: 40 }}>
+          등록된 작품이 없어요.
+        </p>
+      )}
     </section>
   );
 }
